@@ -1,25 +1,50 @@
 import random
 from questions import questions
 
-random.shuffle(questions)
+TARGET_MARKS = 10
 
-paper = []
-total_marks = 0
 
-for q in questions:
+def generate_paper(question_bank, target_marks):
+    shuffled = question_bank.copy()
+    random.shuffle(shuffled)
 
-    if total_marks + q["marks"] <= 10:
-        paper.append(q)
+    def find_combination(start, selected, current_marks):
+        if current_marks == target_marks:
+            return selected
+
+        if current_marks > target_marks:
+            return None
+
+        for i in range(start, len(shuffled)):
+            question = shuffled[i]
+
+            result = find_combination(
+                i + 1,
+                selected + [question],
+                current_marks + question["marks"]
+            )
+
+            if result is not None:
+                return result
+
+        return None
+
+    return find_combination(0, [], 0)
+
+
+paper = generate_paper(questions, TARGET_MARKS)
+
+if paper is None:
+    print("No paper with exactly", TARGET_MARKS, "marks can be created.")
+else:
+    print("QUESTION PAPER")
+    print("================")
+
+    total_marks = 0
+
+    for number, q in enumerate(paper, 1):
+        print(f"Q{number}. {q['question']} [{q['marks']} marks]")
         total_marks += q["marks"]
 
-    if total_marks == 10:
-        break
-
-print("QUESTION PAPER")
-print("================")
-
-for number, q in enumerate(paper, 1):
-    print(f"Q{number}. {q['question']} [{q['marks']} marks]")
-
-print("================")
-print("Total Marks:", total_marks)
+    print("================")
+    print("Total Marks:", total_marks)
